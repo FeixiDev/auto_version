@@ -1,1 +1,1 @@
-Version = 'v0.6_test20200602154239'
+Version = 'v0.7'
