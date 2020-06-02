@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 
 import commands
 import re
@@ -29,9 +29,9 @@ def change_version_in_code(file_name, strVersion):
     os.rename('ReplaceFile.py', file_name)
 
 def time_now_tag():
-    return datetime.datetime.now().strftime('%Y%m%d%H%M%S') #/%H:%M:%S
+    return datetime.datetime.now().strftime('%Y%m%d%H%M%S')  # /%H:%M:%S
 
-#自动生成版本号
+# 自动生成版本号
 def auto_version(tag_name, file_name):
     create_tag(tag_name)
     change_version_in_code(file_name, tag_name)
@@ -39,12 +39,12 @@ def auto_version(tag_name, file_name):
 
 
 class AutoCutVersion():
-    def __init__(self,Filename):
-        self.current_tag=get_current_tag()
-        self.file_name=Filename
+    def __init__(self, Filename):
+        self.current_tag = get_current_tag()
+        self.file_name = Filename
         self.auto_cut_version()
 
-    def create_version(self,current_tag):
+    def create_version(self, current_tag):
         self.test_version_tag = current_tag + '_test%s' % time_now_tag()
 
     def judge_test_version(self):
@@ -59,6 +59,7 @@ class AutoCutVersion():
         change_version_in_code(self.file_name, self.test_version_tag)
         git_commit(self.file_name, self.test_version_tag)
         create_tag(self.test_version_tag)
+
 
 class ParseVersion():
     def __init__(self):
@@ -81,7 +82,7 @@ class ParseVersion():
                                  help="Please enter a file name")
 
     def parser_version(self):
-        #需要判断用户输入的文件路径是否存在
+        # 需要判断用户输入的文件路径是否存在
         args = self.parser.parse_args()
         if args.cut_test_version:
             if os.path.isfile(args.cut_test_version):
@@ -90,11 +91,12 @@ class ParseVersion():
                 print("File path does not exist")
         elif args.auto_version:
             if os.path.isfile(args.auto_version[0]):
-                auto_version(args.auto_version[1],args.auto_version[0])
+                auto_version(args.auto_version[1], args.auto_version[0])
             else:
                 print("File path does not exist")
         else:
             self.parser.print_help()
+
 
 if __name__ == '__main__':
     ParseVersion()
