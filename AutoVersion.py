@@ -3,7 +3,8 @@
 import commands,re,os,datetime
 
 ## update version file
-Filename = "Main2.py"
+Filename = "Main.py"
+
 
 def auto_version():
     AutoVersion()
@@ -32,7 +33,7 @@ class Source(object):
         os.rename('ReplaceFile.py', Filename)
 
     def change_version_commit(self,last_tag):
-        commands.getoutput('git add *.py')
+        commands.getoutput('git add %s' % Filename)
         commands.getoutput('git commit -m "change version info ,add new tag %s" ' % last_tag)
 
     def create_tag_cut(self,last_tag):
@@ -85,6 +86,6 @@ class AutoCutVersion(Source):
 
 
 if __name__ == '__main__':
-
+    pass
     #auto_version()
     auto_cut_version()
