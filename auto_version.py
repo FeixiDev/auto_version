@@ -1,6 +1,6 @@
 # coding:utf-8
 
-import commands
+import subprocess
 import re
 import os
 import datetime
@@ -8,23 +8,23 @@ import argparse
 
 
 def get_current_tag():
-    result = (commands.getoutput('git tag')).split()
+    result = (subprocess.getoutput('git tag')).split()
     if result:
         return result[-1]
 
 def create_tag(tag_name):
-    commands.getoutput('git tag %s' % tag_name)
+    subprocess.run('git tag %s' % tag_name, shell=True)
 
-def git_commit(file_name, comment):
-    commands.getoutput('git add %s' % file_name)
-    commands.getoutput('git commit -m "change version info ,add new tag %s" ' % comment)
+def git_commit(file_name, version):
+    subprocess.run('git add %s' % file_name, shell=True)
+    subprocess.run('git commit -m "change version info ,add new tag %s" ' % version, shell=True, stdout=subprocess.PIPE)
 
-def change_version_in_code(file_name, strVersion):
-    replace_version = "Version = '%s'" % strVersion
-    old_str = r"Version = [a-zA-Z0-9_.']*"
+def change_version_in_code(file_name, new_version):
+    version = "VERSION = '%s'" % new_version
+    old_str = r"VERSION = [a-zA-Z0-9_.']*"
     with open(file_name, 'r') as f1, open('ReplaceFile.py', 'w') as f2:
         for line in f1:
-            f2.write(re.sub(old_str, replace_version, line, 1))
+            f2.write(re.sub(old_str, version, line, 1))
     os.remove(file_name)
     os.rename('ReplaceFile.py', file_name)
 
@@ -39,10 +39,10 @@ def auto_version(tag_name, file_name):
 
 
 class AutoCutVersion():
-    def __init__(self, Filename):
+    def __init__(self, file_name):
         self.current_tag = get_current_tag()
-        self.file_name = Filename
-        self.auto_cut_version()
+        self.file_name = file_name
+        self.cut_test_version()
 
     def create_version(self, current_tag):
         self.test_version_tag = current_tag + '_test%s' % time_now_tag()
@@ -54,7 +54,7 @@ class AutoCutVersion():
         else:
             self.create_version(self.current_tag)
 
-    def auto_cut_version(self):
+    def cut_test_version(self):
         self.judge_test_version()
         change_version_in_code(self.file_name, self.test_version_tag)
         git_commit(self.file_name, self.test_version_tag)
@@ -99,4 +99,5 @@ class ParseVersion():
 
 
 if __name__ == '__main__':
+
     ParseVersion()
