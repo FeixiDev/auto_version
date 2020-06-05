@@ -38,7 +38,7 @@ def auto_version(tag_name, file_name):
     git_commit(file_name, tag_name)
 
 
-class AutoCutVersion():
+class CutTestVersion():
     def __init__(self, file_name):
         self.current_tag = get_current_tag()
         self.file_name = file_name
