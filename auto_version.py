@@ -20,18 +20,19 @@ def get_current_tag():
 
 def create_tag(tag_name):
     try:
-        subprocess.check_output(['git','tag',tag_name] )
+        subprocess.check_output(['git', 'tag', tag_name])
     except subprocess.CalledProcessError as e:
         print('Error:', e)
 
 
 def git_commit(file_name, version):
     try:
-        subprocess.check_output(['git','add', file_name ] )
+        subprocess.check_output(['git', 'add', file_name])
     except subprocess.CalledProcessError as e:
         print('Error:', e)
     try:
-        subprocess.check_output(['git','commit','-m','change version info, add new tag %s' % version] )
+        subprocess.check_output(
+            ['git', 'commit', '-m', 'change version info, add new tag %s' % version])
     except subprocess.CalledProcessError as e:
         print('Error:', e)
 
@@ -50,6 +51,8 @@ def time_now_tag():
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
 # 自动生成版本号
+
+
 def auto_version(tag_name, file_name):
     create_tag(tag_name)
     change_version_in_code(file_name, tag_name)
