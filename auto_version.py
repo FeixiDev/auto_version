@@ -1,5 +1,6 @@
 # coding:utf-8
 
+from __future__ import print_function
 import subprocess
 import re
 import os
@@ -8,22 +9,31 @@ import argparse
 
 
 def get_current_tag():
-    result = (subprocess.getoutput(
-        'git tag -n --sort=taggerdate ')).split('\n')
-    result = result[-1].split()
+    try:
+        output = subprocess.getoutput('git tag').strip()
+    except Exception as e:
+        output = subprocess.check_output(['git', 'tag']).strip()
+    result = str(output).split('\n')
     if result:
-        return result[0]
+        return result[-1]
 
 
 def create_tag(tag_name):
-    subprocess.run('git tag %s' % tag_name, shell=True)
+    try:
+        subprocess.check_output(['git','tag',tag_name] )
+    except subprocess.CalledProcessError as e:
+        print('Error:', e)
 
 
 def git_commit(file_name, version):
-    subprocess.run('git add %s' % file_name, shell=True)
-    subprocess.run(
-        'git commit -m "change version info ,add new tag %s" ' %
-        version, shell=True, stdout=subprocess.PIPE)
+    try:
+        subprocess.check_output(['git','add', file_name ] )
+    except subprocess.CalledProcessError as e:
+        print('Error:', e)
+    try:
+        subprocess.check_output(['git','commit','-m','change version info, add new tag %s' % version] )
+    except subprocess.CalledProcessError as e:
+        print('Error:', e)
 
 
 def change_version_in_code(file_name, new_version):
@@ -40,8 +50,6 @@ def time_now_tag():
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
 # 自动生成版本号
-
-
 def auto_version(tag_name, file_name):
     create_tag(tag_name)
     change_version_in_code(file_name, tag_name)
@@ -86,11 +94,12 @@ class ParseVersion():
             dest="auto_version",
             nargs=2,
             help="Please enter a file name and label name")
-        self.parser.add_argument('-t',
-                                 '--cut_test_version',
-                                 action="store",
-                                 dest="cut_test_version",
-                                 help="Please enter a file name")
+        self.parser.add_argument(
+            '-t',
+            '--cut_test_version',
+            action="store",
+            dest="cut_test_version",
+            help="Please enter a file name")
 
     def parser_version(self):
         args = self.parser.parse_args()
@@ -105,5 +114,4 @@ class ParseVersion():
 
 
 if __name__ == '__main__':
-    # ParseVersion()
-    get_current_tag()
+    ParseVersion()
