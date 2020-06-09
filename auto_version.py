@@ -8,16 +8,23 @@ import argparse
 
 
 def get_current_tag():
-    result = (subprocess.getoutput('git tag')).split()
+    result = (subprocess.getoutput(
+        'git tag -n --sort=taggerdate ')).split('\n')
+    result = result[-1].split()
     if result:
-        return result[-1]
+        return result[0]
+
 
 def create_tag(tag_name):
     subprocess.run('git tag %s' % tag_name, shell=True)
 
+
 def git_commit(file_name, version):
     subprocess.run('git add %s' % file_name, shell=True)
-    subprocess.run('git commit -m "change version info ,add new tag %s" ' % version, shell=True, stdout=subprocess.PIPE)
+    subprocess.run(
+        'git commit -m "change version info ,add new tag %s" ' %
+        version, shell=True, stdout=subprocess.PIPE)
+
 
 def change_version_in_code(file_name, new_version):
     version = "VERSION = '%s'" % new_version
@@ -28,10 +35,13 @@ def change_version_in_code(file_name, new_version):
     os.remove(file_name)
     os.rename('ReplaceFile.py', file_name)
 
+
 def time_now_tag():
-    return datetime.datetime.now().strftime('%Y%m%d%H%M%S')  # /%H:%M:%S
+    return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
 # 自动生成版本号
+
+
 def auto_version(tag_name, file_name):
     create_tag(tag_name)
     change_version_in_code(file_name, tag_name)
@@ -69,12 +79,13 @@ class ParseVersion():
     def argparse_init(self):
         self.parser = argparse.ArgumentParser(prog='myprogram',
                                               description='Choose funciton')
-        self.parser.add_argument('-a',
-                                 '--auto_version',
-                                 action="store",
-                                 dest="auto_version",
-                                 nargs=2,
-                                 help="Please enter a file name and label name")
+        self.parser.add_argument(
+            '-a',
+            '--auto_version',
+            action="store",
+            dest="auto_version",
+            nargs=2,
+            help="Please enter a file name and label name")
         self.parser.add_argument('-t',
                                  '--cut_test_version',
                                  action="store",
@@ -82,22 +93,17 @@ class ParseVersion():
                                  help="Please enter a file name")
 
     def parser_version(self):
-        # 需要判断用户输入的文件路径是否存在
         args = self.parser.parse_args()
         if args.cut_test_version:
-            if os.path.isfile(args.cut_test_version):
-                AutoCutVersion(args.cut_test_version)
-            else:
-                print("File path does not exist")
+            CutTestVersion(args.cut_test_version) if os.path.isfile(
+                args.cut_test_version) else print("File path does not exist")
         elif args.auto_version:
-            if os.path.isfile(args.auto_version[0]):
-                auto_version(args.auto_version[1], args.auto_version[0])
-            else:
-                print("File path does not exist")
+            auto_version(args.auto_version[1], args.auto_version[0]) if os.path.isfile(
+                args.auto_version[0]) else print("File path does not exist")
         else:
             self.parser.print_help()
 
 
 if __name__ == '__main__':
-
-    ParseVersion()
+    # ParseVersion()
+    get_current_tag()
