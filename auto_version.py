@@ -53,16 +53,17 @@ def time_now_tag():
 # 自动生成版本号
 
 
-def auto_version(tag_name, file_name):
+def auto_version(tag_name):
+    file_name = 'consts.py'
     create_tag(tag_name)
     change_version_in_code(file_name, tag_name)
     git_commit(file_name, tag_name)
 
 
 class CutTestVersion():
-    def __init__(self, file_name):
+    def __init__(self):
         self.current_tag = get_current_tag()
-        self.file_name = file_name
+        self.file_name = 'consts.py'
         self.cut_test_version()
 
     def create_version(self, current_tag):
@@ -95,23 +96,20 @@ class ParseVersion():
             '--auto_version',
             action="store",
             dest="auto_version",
-            nargs=2,
-            help="Please enter a file name and label name")
+            help="Please enter a label name")
         self.parser.add_argument(
             '-t',
             '--cut_test_version',
-            action="store",
+            action="store_true",
             dest="cut_test_version",
-            help="Please enter a file name")
+            help="Generate the latest test version number")
 
     def parser_version(self):
         args = self.parser.parse_args()
         if args.cut_test_version:
-            CutTestVersion(args.cut_test_version) if os.path.isfile(
-                args.cut_test_version) else print("File path does not exist")
+            CutTestVersion()
         elif args.auto_version:
-            auto_version(args.auto_version[1], args.auto_version[0]) if os.path.isfile(
-                args.auto_version[0]) else print("File path does not exist")
+            auto_version(args.auto_version)
         else:
             self.parser.print_help()
 
