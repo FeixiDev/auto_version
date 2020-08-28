@@ -1,5 +1,6 @@
 # coding:utf-8
 
+from __future__ import print_function
 import subprocess
 import re
 import os
@@ -8,16 +9,33 @@ import argparse
 
 
 def get_current_tag():
-    result = (subprocess.getoutput('git tag')).split()
+    try:
+        output = subprocess.getoutput('git tag').strip()
+    except Exception as e:
+        output = subprocess.check_output(['git', 'tag']).strip()
+    result = str(output).split('\n')
     if result:
         return result[-1]
 
+
 def create_tag(tag_name):
-    subprocess.run('git tag %s' % tag_name, shell=True)
+    try:
+        subprocess.check_output(['git', 'tag', tag_name])
+    except subprocess.CalledProcessError as e:
+        print('Error:', e)
+
 
 def git_commit(file_name, version):
-    subprocess.run('git add %s' % file_name, shell=True)
-    subprocess.run('git commit -m "change version info ,add new tag %s" ' % version, shell=True, stdout=subprocess.PIPE)
+    try:
+        subprocess.check_output(['git', 'add', file_name])
+    except subprocess.CalledProcessError as e:
+        print('Error:', e)
+    try:
+        subprocess.check_output(
+            ['git', 'commit', '-m', 'change version info, add new tag %s' % version])
+    except subprocess.CalledProcessError as e:
+        print('Error:', e)
+
 
 def change_version_in_code(file_name, new_version):
     version = "VERSION = '%s'" % new_version
@@ -28,20 +46,24 @@ def change_version_in_code(file_name, new_version):
     os.remove(file_name)
     os.rename('ReplaceFile.py', file_name)
 
+
 def time_now_tag():
-    return datetime.datetime.now().strftime('%Y%m%d%H%M%S')  # /%H:%M:%S
+    return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
 # 自动生成版本号
-def auto_version(tag_name, file_name):
+
+
+def auto_version(tag_name):
+    file_name = 'consts.py'
     create_tag(tag_name)
     change_version_in_code(file_name, tag_name)
     git_commit(file_name, tag_name)
 
 
 class CutTestVersion():
-    def __init__(self, file_name):
+    def __init__(self):
         self.current_tag = get_current_tag()
-        self.file_name = file_name
+        self.file_name = 'consts.py'
         self.cut_test_version()
 
     def create_version(self, current_tag):
@@ -69,35 +91,28 @@ class ParseVersion():
     def argparse_init(self):
         self.parser = argparse.ArgumentParser(prog='myprogram',
                                               description='Choose funciton')
-        self.parser.add_argument('-a',
-                                 '--auto_version',
-                                 action="store",
-                                 dest="auto_version",
-                                 nargs=2,
-                                 help="Please enter a file name and label name")
-        self.parser.add_argument('-t',
-                                 '--cut_test_version',
-                                 action="store",
-                                 dest="cut_test_version",
-                                 help="Please enter a file name")
+        self.parser.add_argument(
+            '-a',
+            '--auto_version',
+            action="store",
+            dest="auto_version",
+            help="Please enter a label name")
+        self.parser.add_argument(
+            '-t',
+            '--cut_test_version',
+            action="store_true",
+            dest="cut_test_version",
+            help="Generate the latest test version number")
 
     def parser_version(self):
-        # 需要判断用户输入的文件路径是否存在
         args = self.parser.parse_args()
         if args.cut_test_version:
-            if os.path.isfile(args.cut_test_version):
-                AutoCutVersion(args.cut_test_version)
-            else:
-                print("File path does not exist")
+            CutTestVersion()
         elif args.auto_version:
-            if os.path.isfile(args.auto_version[0]):
-                auto_version(args.auto_version[1], args.auto_version[0])
-            else:
-                print("File path does not exist")
+            auto_version(args.auto_version)
         else:
             self.parser.print_help()
 
 
 if __name__ == '__main__':
-
     ParseVersion()
