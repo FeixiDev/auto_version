@@ -55,9 +55,9 @@ def time_now_tag():
 
 def auto_version(tag_name):
     file_name = 'consts.py'
-    create_tag(tag_name)
     change_version_in_code(file_name, tag_name)
     git_commit(file_name, tag_name)
+    create_tag(tag_name)
 
 
 class CutTestVersion():
