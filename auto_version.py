@@ -39,7 +39,7 @@ def git_commit(file_name, version):
 
 def change_version_in_code(file_name, new_version):
     version = "VERSION = '%s'" % new_version
-    old_str = r"VERSION = [a-zA-Z0-9_.']*"
+    old_str = r"VERSION\s*=\s*[\'\"]+[a-zA-Z0-9_.\- ]*[\'\"]+"
     with open(file_name, 'r') as f1, open('ReplaceFile.py', 'w') as f2:
         for line in f1:
             f2.write(re.sub(old_str, version, line, 1))
