@@ -10,13 +10,13 @@ import sys
 
 
 def check_tag_name(string):
-    re_iqn = re.compile(
+    re_tag_name = re.compile(
         r'^v\d+\.\d+\.\d+(-(Alpha|Beta|RC|Release|R))?$')
-    result = re_iqn.match(string)
+    result = re_tag_name.match(string)
     if result:
         return True
     else:
-        print("Incorrect format, please enter again.\n")
+        print("Incorrect version name format, please enter again!")
         sys.exit()
 
 
@@ -26,8 +26,8 @@ def checkout_position(position):
     except subprocess.CalledProcessError as e:
         print('Error:', e)
 
+
 def get_current_tag():
-    '''可以改:不用getoutput，用check_output'''
     try:
         output = subprocess.getoutput('git tag').strip()
     except Exception as e:
@@ -58,7 +58,7 @@ def git_commit(file_name, version):
 
 def change_version_in_code(file_name, new_version):
     version = "VERSION = '%s'" % new_version
-    old_str = r"VERSION\s*=\s*[\'\"]?[a-zA-Z0-9_.\- ]*[\'\"]?"
+    old_str = r"VERSION\s*=\s*[\'\"]+[a-zA-Z0-9_.\- ]*[\'\"]+"
     with open(file_name, 'r') as f1, open('ReplaceFile.py', 'w') as f2:
         for line in f1:
             f2.write(re.sub(old_str, version, line, 1))
@@ -68,6 +68,7 @@ def change_version_in_code(file_name, new_version):
 
 def time_now_tag():
     return datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+
 
 # 自动生成版本号
 
@@ -79,6 +80,7 @@ def auto_version(tag_name, id=None):
     change_version_in_code(file_name, tag_name)
     git_commit(file_name, tag_name)
     create_tag(tag_name)
+
 
 class CutTestVersion():
     def __init__(self, tag_name=None):
@@ -108,6 +110,7 @@ class CutTestVersion():
         git_commit(self.file_name, self.test_version_tag)
         create_tag(self.test_version_tag)
 
+
 class ParseVersion():
     def __init__(self):
         self.argparse_init()
@@ -129,12 +132,11 @@ class ParseVersion():
         #     dest="cut_test_version",
         #     help="Generate the latest test version number")
 
-
         self.subparser = self.parser.add_subparsers(metavar='', dest='subargs')
 
         self.par_version = self.subparser.add_parser(
             'auto',
-            help="Generate an official version")
+            help="Generate an official version.")
 
         self.par_version.add_argument(
             '-id',
@@ -142,22 +144,22 @@ class ParseVersion():
             action="store",
             dest="commit_id",
             nargs='?',
-            help="Please enter a commit ID. Generate a version on this commit.")
+            help="Commit ID. Generate a version on this commit.")
 
         self.par_version.add_argument(
             'version',
             action="store",
-            help="Please enter a Version name with correct format")
+            help="Version name.")
 
         self.par_test_version = self.subparser.add_parser(
             'test',
-            help="Generate a test version ")
+            help="Generate a test version.")
 
         self.par_test_version.add_argument(
             '-tag',
             action="store",
             dest="tag_name",
-            help="Please enter a Tag name. Generate a test version with this Tag.")
+            help="Tag name. Generate a test version with this Tag.")
 
         self.par_version.set_defaults(func=self.get_auto_version)
         self.par_test_version.set_defaults(func=self.get_test_version)
@@ -173,15 +175,6 @@ class ParseVersion():
         self.par_test_version.print_help()
 
     def get_auto_version(self, args):
-
-        # args = self.parser.parse_args()
-        # if args.cut_test_version:
-        #     CutTestVersion()
-        # elif args.auto_version:
-        #     auto_version(args.auto_version)
-        # else:
-        #     self.parser.print_help()
-        # auto_version(args.auto_version)
         check_tag_name(args.version)
         if args.commit_id:
             auto_version(args.version, args.commit_id)
@@ -189,25 +182,15 @@ class ParseVersion():
             auto_version(args.version)
 
     def get_test_version(self, args):
-        # args = self.parser.parse_args()
-        # if args.cut_test_version:
-        #     CutTestVersion()
-        # elif args.auto_version:
-        #     auto_version(args.auto_version)
-        # else:
-        #     self.parser.print_help()
-        # args.func(args)
-        # CutTestVersion()
         if args.tag_name:
             check_tag_name(args.tag_name)
             CutTestVersion(args.tag_name)
         else:
             CutTestVersion()
 
-    def parse(self): # 调用入口
+    def parse(self):  # 调用入口
         args = self.parser.parse_args()
         args.func(args)
-
 
 
 def main():
@@ -218,4 +201,3 @@ def main():
 if __name__ == '__main__':
     main()
     # ParseVersion()
-
